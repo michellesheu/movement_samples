@@ -8,7 +8,7 @@ namespace Oculus.Interaction.Input
     // Rather than sourcing data directly from the runtime layer, provides one
     // level of abstraction so that the aforementioned data can be injected
     // from other sources.
-    public class Hand : DataModifier<HandDataAsset>, IHand
+    public class New_Hand : DataModifier<HandDataAsset>, IHand
     {
         public Handedness Handedness => GetData().Config.Handedness;
 

@@ -9,7 +9,7 @@ using UnityEngine;
 /// See <see cref="OVRPlugin.EyeGazeState"/> structure for list of eye state parameters.
 /// </remarks>
 [HelpURL("https://developer.oculus.com/documentation/unity/move-eye-tracking/")]
-public class OVREyeGaze : MonoBehaviour
+public class new_OVR_Eye_Gaze : MonoBehaviour
 {
     /// <summary>
     /// True if eye tracking is enabled, otherwise false.
@@ -183,7 +183,7 @@ public class OVREyeGaze : MonoBehaviour
     {
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
         string eyeName = Eye.ToString();
-        Vector3 position = eyeGaze.Pose.Position;
+        Vector3 position = new Vector3(eyeGaze.Pose.Position.x, eyeGaze.Pose.Position.y, eyeGaze.Pose.Position.z);
 
         string logEntry = $"{timestamp}, {eyeName}, {Confidence}, {position.x}, {position.y}, {position.z}\n";
         File.AppendAllText(logFilePath, logEntry);
@@ -216,7 +216,6 @@ public class OVREyeGaze : MonoBehaviour
         _viewTransform.parent = transform.parent;
         _initialRotationOffset = Quaternion.Inverse(_viewTransform.rotation) * transform.rotation;
     }
-
 
     /// <summary>
     /// List of eyes

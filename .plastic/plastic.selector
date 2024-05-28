@@ -1,0 +1,4 @@
+repository "movement_samples@michchicken@cloud"
+  path "/"
+    br "/main"
+    co "/main"

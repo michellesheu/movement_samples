@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEngine;
 
 /// <summary>
@@ -8,7 +9,7 @@ using UnityEngine;
 /// See <see cref="OVRPlugin.EyeGazeState"/> structure for list of eye state parameters.
 /// </remarks>
 [HelpURL("https://developer.oculus.com/documentation/unity/move-eye-tracking/")]
-public class NewOVREyeGaze : MonoBehaviour
+public class OVREyeGaze : MonoBehaviour
 {
     /// <summary>
     /// True if eye tracking is enabled, otherwise false.
@@ -73,9 +74,15 @@ public class NewOVREyeGaze : MonoBehaviour
     private Action<string> _onPermissionGranted;
     private static int _trackingInstanceCount;
 
+    private string logFilePath;
+
     private void Awake()
     {
         _onPermissionGranted = OnPermissionGranted;
+        logFilePath = Path.Combine(Application.persistentDataPath, "EyeTrackingLog.txt");
+
+        // Create or clear the log file at the start
+        File.WriteAllText(logFilePath, "Timestamp, Eye, Confidence, X, Y, Z\n");
     }
 
     private void Start()
@@ -174,7 +181,12 @@ public class NewOVREyeGaze : MonoBehaviour
 
     private void LogEyeGazeData(OVRPlugin.EyeGazeState eyeGaze)
     {
-        Debug.Log($"Eye: {Eye}, Confidence: {Confidence}, Position: {eyeGaze.Pose.Position}, Rotation: {eyeGaze.Pose.Orientation}");
+        string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        string eyeName = Eye.ToString();
+        Vector3 position = eyeGaze.Pose.Position;
+
+        string logEntry = $"{timestamp}, {eyeName}, {Confidence}, {position.x}, {position.y}, {position.z}\n";
+        File.AppendAllText(logFilePath, logEntry);
     }
 
     private Quaternion CalculateEyeRotation(Quaternion eyeRotation)
@@ -204,6 +216,7 @@ public class NewOVREyeGaze : MonoBehaviour
         _viewTransform.parent = transform.parent;
         _initialRotationOffset = Quaternion.Inverse(_viewTransform.rotation) * transform.rotation;
     }
+
 
     /// <summary>
     /// List of eyes

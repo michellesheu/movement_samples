@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEngine;
 
 namespace Oculus.Interaction.Input
@@ -30,9 +31,20 @@ namespace Oculus.Interaction.Input
 
         private static readonly Vector3 PALM_LOCAL_OFFSET = new Vector3(0.08f, -0.01f, 0.0f);
 
+        private string logFilePath;
+
         protected override void Apply(HandDataAsset data)
         {
             // Default implementation does nothing, to allow instantiation of this modifier directly
+        }
+
+        private void Start()
+        {
+            // Define the path for the log file
+            logFilePath = Path.Combine(Application.persistentDataPath, "HandPositionsLog.txt");
+
+            // Create or clear the log file at the start
+            File.WriteAllText(logFilePath, "Timestamp, Hand, Joint, X, Y, Z\n");
         }
 
         public override void MarkInputDataRequiresUpdate()
@@ -66,18 +78,18 @@ namespace Oculus.Interaction.Input
 
         private void LogHandJointPositions()
         {
-            // Log root pose position
-            if (GetRootPose(out Pose rootPose))
-            {
-                Debug.Log($"Hand: {Handedness}, Root Position: {rootPose.position}");
-            }
-
             // Log joint positions
             foreach (HandJointId jointId in Enum.GetValues(typeof(HandJointId)))
             {
                 if (GetJointPose(jointId, out Pose jointPose))
                 {
-                    Debug.Log($"Hand: {Handedness}, Joint: {jointId}, Position: {jointPose.position}");
+                    string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    string handName = Handedness.ToString();
+                    string jointName = jointId.ToString();
+                    Vector3 position = jointPose.position;
+
+                    string logEntry = $"{timestamp}, {handName}, {jointName}, {position.x}, {position.y}, {position.z}\n";
+                    File.AppendAllText(logFilePath, logEntry);
                 }
             }
         }

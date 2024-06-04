@@ -4,10 +4,6 @@ using UnityEngine;
 
 namespace Oculus.Interaction.Input
 {
-    // A top level component that provides hand pose data, pinch states, and more.
-    // Rather than sourcing data directly from the runtime layer, provides one
-    // level of abstraction so that the aforementioned data can be injected
-    // from other sources.
     public class New_Hand : DataModifier<HandDataAsset>, IHand
     {
         public Handedness Handedness => GetData().Config.Handedness;
@@ -33,18 +29,17 @@ namespace Oculus.Interaction.Input
 
         private string logFilePath;
 
-        protected override void Apply(HandDataAsset data)
+        private new void Start()
         {
-            // Default implementation does nothing, to allow instantiation of this modifier directly
-        }
-
-        private void Start()
-        {
-            // Define the path for the log file
-            logFilePath = Path.Combine(Application.persistentDataPath, "HandPositionsLog.txt");
+            logFilePath = Path.Combine(Application.persistentDataPath, "HandTrackingLog.txt");
 
             // Create or clear the log file at the start
             File.WriteAllText(logFilePath, "Timestamp, Hand, Joint, X, Y, Z\n");
+        }
+
+        protected override void Apply(HandDataAsset data)
+        {
+            // Default implementation does nothing, to allow instantiation of this modifier directly
         }
 
         public override void MarkInputDataRequiresUpdate()
@@ -78,20 +73,27 @@ namespace Oculus.Interaction.Input
 
         private void LogHandJointPositions()
         {
-            // Log joint positions
+            if (GetRootPose(out Pose rootPose))
+            {
+                LogJointPosition("Root", rootPose.position);
+            }
+
             foreach (HandJointId jointId in Enum.GetValues(typeof(HandJointId)))
             {
                 if (GetJointPose(jointId, out Pose jointPose))
                 {
-                    string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-                    string handName = Handedness.ToString();
-                    string jointName = jointId.ToString();
-                    Vector3 position = jointPose.position;
-
-                    string logEntry = $"{timestamp}, {handName}, {jointName}, {position.x}, {position.y}, {position.z}\n";
-                    File.AppendAllText(logFilePath, logEntry);
+                    LogJointPosition(jointId.ToString(), jointPose.position);
                 }
             }
+        }
+
+        private void LogJointPosition(string jointName, Vector3 position)
+        {
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            string handName = Handedness.ToString();
+
+            string logEntry = $"{timestamp}, {handName}, {jointName}, {position.x}, {position.y}, {position.z}\n";
+            File.AppendAllText(logFilePath, logEntry);
         }
 
         #region IHandState implementation
@@ -208,7 +210,6 @@ namespace Oculus.Interaction.Input
         }
 
         #endregion
-
 
         private bool ValidatePose(in Pose sourcePose, PoseOrigin sourcePoseOrigin, out Pose pose)
         {
